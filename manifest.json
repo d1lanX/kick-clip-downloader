@@ -1,25 +1,37 @@
 {
-  "manifest_version": 3,
-  "name": "Kick Clip Downloader",
-  "version": "3.0",
-  "description": "Herramienta para clipear VODs y Directos de Kick.",
-  "icons": { "16": "kick.png", "48": "kick.png", "128": "kick.png" },
-
-  "permissions": ["webRequest", "storage", "scripting", "downloads"],
-
-  "host_permissions": ["*://*.kick.com/*", "*://*.live-video.net/*"],
-  "background": {
-    "service_worker": "background.js"
-  },
-
-  "action": {
-    "default_popup": "popup.html"
-  },
-
-  "content_scripts": [
-    {
-      "matches": ["*://*.kick.com/*"],
-      "js": ["content-script.js"]
-    }
-  ]
+    "manifest_version": 3,
+    "name": "Kick Clip Downloader",
+    "version": "3.0",
+    "description": "Herramienta para clipear VODs y Directos de Kick.",
+    "icons": {
+        "16": "kick.png",
+        "48": "kick.png",
+        "128": "kick.png"
+    },
+    "permissions": [
+        "webRequest",
+        "storage",
+        "scripting",
+        "downloads"
+    ],
+    "host_permissions": [
+        "*://*.kick.com/*",
+        "*://*.live-video.net/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.kick.com/*"
+            ],
+            "js": [
+                "content-script.js"
+            ]
+        }
+    ]
 }

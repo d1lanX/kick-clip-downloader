@@ -1,4 +1,6 @@
-console.log("Background script cargado. v3.2 - Buffering Enabled");
+importScripts("mux.js");
+
+console.log("Background script cargado. v3.3 - Transmuxing to MP4 Enabled");
 
 // ======================================================
 // === GLOBAL VARIABLES & CONFIG ===
@@ -473,16 +475,51 @@ async function processAndDownload(segments) {
         console.log(`Descargados ${segmentBuffers.length} fragmentos.`);
 
         const combinedBuffer = concatenateArrayBuffers(segmentBuffers);
-        const blob = new Blob([combinedBuffer], { type: "video/mp2t" });
+
+        // Transmux to MP4 using mux.js
+        console.log("Transmuxing to MP4...");
+        const transmuxer = new muxjs.mp4.Transmuxer();
+        let initSegment = new Uint8Array(0);
+        let mp4Segments = [];
+
+        transmuxer.on("data", (segment) => {
+            if (segment.initSegment) {
+                initSegment = segment.initSegment;
+            }
+            if (segment.data) {
+                mp4Segments.push(segment.data);
+            }
+        });
+
+        transmuxer.push(new Uint8Array(combinedBuffer));
+        transmuxer.flush();
+
+        // Include init segment at the beginning of the file
+        let totalLength = initSegment.byteLength;
+        for (const data of mp4Segments) {
+            totalLength += data.byteLength;
+        }
+
+        const finalMp4Data = new Uint8Array(totalLength);
+        let offset = 0;
+        finalMp4Data.set(initSegment, offset);
+        offset += initSegment.byteLength;
+
+        for (const data of mp4Segments) {
+            finalMp4Data.set(data, offset);
+            offset += data.byteLength;
+        }
+
+        const blob = new Blob([finalMp4Data], { type: "video/mp4" });
         const dataUrl = await blobToDataURL(blob);
 
-        const filename = `kick-clip-${new Date().toISOString().replace(/:/g, "-")}.mpeg`;
+        const filename = `kick-clip-${new Date().toISOString().replace(/:/g, "-")}.mp4`;
 
         chrome.downloads.download({
             url: dataUrl,
             filename: filename,
         });
-        console.log("Descarga enviada al navegador.");
+        console.log("Descarga MP4 enviada al navegador.");
     } catch (error) {
         console.error("Error procesando descarga:", error);
     }
